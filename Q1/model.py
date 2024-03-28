@@ -72,6 +72,8 @@ class Gaussians:
         if self.device == "cuda":
             self.to_cuda()
 
+        self.PI = 3.14159
+    
     def __len__(self):
         return len(self.means)
 
@@ -369,8 +371,10 @@ class Gaussians:
         """
         ### YOUR CODE HERE ###
         # HINT: Refer to README for a relevant equation
-        power = None  # (N, H*W)
-
+        diff =  (points_2D - means_2D).unsqueeze(-1) #N, HW, 2, 1
+        diff_T  = diff.transpose(-2, -1)             #N, HW, 1, 2
+        cov_2D_inverse = cov_2D_inverse.unsqueeze(1) #N, 1,  2, 2
+        power = -0.5 * diff_T @ cov_2D_inverse @ diff
         return power
 
     @staticmethod
