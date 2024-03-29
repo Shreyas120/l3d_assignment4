@@ -472,7 +472,6 @@ class Scene:
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
         cov_2D_inverse = self.gaussians.invert_cov_2D(cov_2D=cov_2D)  # (N, 2, 2)
-        assert cov_2D_inverse.shape == (means_2D.shape[0], 2 , 2)  #TODO: remove
         ### YOUR CODE HERE ###
         # HINT: Can you find a function in this file that can help?
         power = self.gaussians.evaluate_gaussian_2D(points_2D=points_2D, means_2D=means_2D, cov_2D_inverse=cov_2D_inverse)  # (N, H*W)
