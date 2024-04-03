@@ -110,12 +110,12 @@ def run_training(args):
         # HINT: Get img_size from train_dataset
         # HINT: Get per_splat from args.gaussians_per_splat
         # HINT: camera is available above
-        assert gt_img.shape == train_dataset.img_size
         pred_img, pred_depth, pred_mask = scene.render(camera=camera, per_splat=args.gaussians_per_splat, img_size=train_dataset.img_size, bg_colour=(0.0, 0.0, 0.0))
 
         # Compute loss
         ### YOUR CODE HERE ###
         # HINT: A simple standard loss function should work.
+        gt_img = gt_img.to(pred_img.device)
         loss = criterion(pred_img, gt_img)
 
         loss.backward()
@@ -232,7 +232,7 @@ def get_args():
         "--viz_freq", default=20, type=int,
         help="Frequency with which visualization should be performed."
     )
-    parser.add_argument("--device", default="cuda", type=str, choices=["cuda", "cpu"])
+    parser.add_argument("--device", default="cuda", type=str, choices=["cpu", "cuda", "cuda:0", "cuda:1"])
     args = parser.parse_args()
     return args
 

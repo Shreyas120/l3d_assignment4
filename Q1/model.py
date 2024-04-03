@@ -15,7 +15,7 @@ class Gaussians:
     ):
 
         self.device = device
-        if self.device not in ("cpu", "cuda"):
+        if self.device not in ("cpu", "cuda",  "cuda:0",  "cuda:1"):
             raise ValueError(f"Unsupported device: {self.device}")
 
         if init_type == "gaussians":
@@ -69,7 +69,7 @@ class Gaussians:
         # if data.get("spherical_harmonics") is not None:
         #     self.spherical_harmonics = data["spherical_harmonics"]
 
-        if self.device == "cuda":
+        if "cuda" in self.device:
             self.to_cuda()
 
         self.PI = 3.14159
@@ -205,11 +205,11 @@ class Gaussians:
 
     def to_cuda(self):
 
-        self.pre_act_quats = self.pre_act_quats.cuda()
-        self.means = self.means.cuda()
-        self.pre_act_scales = self.pre_act_scales.cuda()
-        self.colours = self.colours.cuda()
-        self.pre_act_opacities = self.pre_act_opacities.cuda()
+        self.pre_act_quats = self.pre_act_quats.to(self.device) 
+        self.means = self.means.to(self.device) 
+        self.pre_act_scales = self.pre_act_scales.to(self.device) 
+        self.colours = self.colours.to(self.device) 
+        self.pre_act_opacities = self.pre_act_opacities.to(self.device) 
 
         # [Q 1.3.1] NOTE: Uncomment spherical harmonics code for question 1.3.1
         # self.spherical_harmonics = self.spherical_harmonics.cuda()
@@ -413,6 +413,7 @@ class Scene:
         ### YOUR CODE HERE ###
         # HINT: You can use get the means of 3D Gaussians self.gaussians and calculate
         # the depth using the means and the camera
+        camera = camera.to(self.device)
         xyz_cam =  camera.get_world_to_view_transform().transform_points(self.gaussians.means)
         z_vals =  xyz_cam[...,-1] # (N,)
         return z_vals
@@ -434,11 +435,10 @@ class Scene:
         Please refer to the README file for more details.
         """
         ### YOUR CODE HERE ###
-        sorted, all_idxs = torch.sort(z_vals)
-        # Filter values less than 0
-        idxs = all_idxs[sorted>0]
+        sorted_idxs = torch.argsort(z_vals, descending = False)
+        idxs = sorted_idxs[z_vals > 0]
         return idxs  # (N,)
-
+    
     def compute_alphas(self, opacities, means_2D, cov_2D, img_size):
         """
         Given some parameters of N ordered Gaussians, this function computes
