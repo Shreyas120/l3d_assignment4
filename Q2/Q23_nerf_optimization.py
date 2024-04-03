@@ -160,12 +160,24 @@ def optimize_nerf(
                 text_cond = embeddings["default"]
             else:
                 ### YOUR CODE HERE ###
-                pass
+                if azimuth >= -90 and azimuth < 90:
+                    r = 1 - torch.abs(azimuth) / 90.0
+                    text_cond = r * embeddings["front"] + (1 - r) * embeddings["side"]
+                else:
+                    r = 1  + ( -1.0 * torch.abs(azimuth) + 90.0) / 90.0
+                    text_cond = r * embeddings["side"] + (1 - r) * embeddings["back"]
 
   
             ### YOUR CODE HERE ###
-            latents = 
-            loss = 
+            pred_rgb = torch.nn.functional.interpolate(pred_rgb, (512, 512), mode="bilinear", align_corners=False)
+            latents =  sds.encode_imgs(pred_rgb)
+            loss = sds.sds_loss(
+                                    latents=latents,
+                                    text_embeddings=text_cond,
+                                    text_embeddings_uncond=text_uncond,
+                                    guidance_scale=100,
+                                    grad_scale=1,
+                                )
 
             # regularizations
             if args.lambda_entropy > 0:

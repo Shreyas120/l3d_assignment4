@@ -232,7 +232,7 @@ def get_args():
         "--viz_freq", default=20, type=int,
         help="Frequency with which visualization should be performed."
     )
-    parser.add_argument("--device", default="cuda", type=str, choices=["cuda", "cpu"])
+    parser.add_argument("--device", default="cuda", type=str, choices=["cpu", "cuda",  "cuda:0",  "cuda:1"])
     args = parser.parse_args()
     return args
 

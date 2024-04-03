@@ -97,14 +97,26 @@ def optimize_mesh_texture(
         mesh.textures = TexturesVertex(verts_features=color_field(vertices))
 
         ### YOUR CODE HERE ###
-
+        R, t = look_at_view_transform(  torch.randint(-5,  -3, size=(1,))[0],
+                                        torch.randint(-5,  60, size=(1,))[0],
+                                        torch.randint( 0, 360, size=(1,))[0],
+                                     )
+        rand_cam = FoVPerspectiveCameras(R=R, T=t, device=device)
+        lights = pytorch3d.renderer.PointLights(location=[[0, 0, -5]], device=device)
         # Forward pass
         # Render a randomly sampled camera view to optimize in this iteration
-        rend = 
+        rend = renderer(mesh, cameras=rand_cam, lights=lights)
         # Encode the rendered image to latents
-        latents = 
+        rend = rend[:, ..., :3].clip(0, 1).permute(0, 3, 1, 2)
+        latents = sds.encode_imgs(rend)
         # Compute the loss
-        loss =
+        loss = sds.sds_loss(    
+                                latents=latents,
+                                text_embeddings=embeddings["default"],
+                                text_embeddings_uncond=embeddings["uncond"],
+                                guidance_scale=100,
+                                grad_scale=1,
+                            )
 
 
 
