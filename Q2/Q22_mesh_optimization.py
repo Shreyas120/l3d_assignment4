@@ -97,9 +97,9 @@ def optimize_mesh_texture(
         mesh.textures = TexturesVertex(verts_features=color_field(vertices))
 
         ### YOUR CODE HERE ###
-        R, t = look_at_view_transform(  torch.randint(-5,  -3, size=(1,))[0],
-                                        torch.randint(-5,  60, size=(1,))[0],
-                                        torch.randint( 0, 360, size=(1,))[0],
+        R, t = look_at_view_transform(  torch.randint(-5,   -1, size=(1,))[0],
+                                        torch.randint(-5,   50, size=(1,))[0],
+                                        torch.randint(-180, 180, size=(1,))[0],
                                      )
         rand_cam = FoVPerspectiveCameras(R=R, T=t, device=device)
         lights = pytorch3d.renderer.PointLights(location=[[0, 0, -5]], device=device)
@@ -168,6 +168,7 @@ if __name__ == "__main__":
         default="data/cow.obj",
         help="Path to the input image",
     )
+    parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
 
     seed_everything(args.seed)
@@ -180,7 +181,10 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
 
     # initialize SDS
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available() and "cuda" in args.device: 
+        device = torch.device(args.device)
+    else:
+        device = torch.device("cpu")
     sds = SDS(sd_version="2.1", device=device, output_dir=output_dir)
 
     # optimize the texture map of a mesh

@@ -160,13 +160,13 @@ class SDS:
                 noisy_pred_uncond = self.unet(noisy_latents, t, encoder_hidden_states=text_embeddings_uncond).sample
                 noisy_pred = noisy_pred_uncond + guidance_scale * (noisy_pred - noisy_pred_uncond)
  
-        # Compute SDS loss
-        w = 1 - self.alphas[t]
-        ### YOUR CODE HERE ###
-        pred = noisy_pred - noise
-        grad = grad_scale * w[:, None, None, None] * pred
-        grad = torch.nan_to_num(grad)
-        targets = (latents - grad)
+            # Compute SDS loss
+            w = 1 - self.alphas[t]
+            ### YOUR CODE HERE ###
+            pred = noisy_pred - noise
+            grad = grad_scale * w[:, None, None, None] * pred
+            grad = torch.nan_to_num(grad)
+            targets = (latents - grad)
         
         loss = 0.5 * F.mse_loss(latents.float(), targets, reduction='sum') / latents.shape[0]
         return loss

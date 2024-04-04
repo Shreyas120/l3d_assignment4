@@ -29,7 +29,7 @@ def optimize_nerf(
     """
 
     # Step 1. Create text embeddings from prompt
-    embeddings = prepare_embeddings(sds, prompt, neg_prompt, view_dependent=False)
+    embeddings = prepare_embeddings(sds, prompt, neg_prompt, view_dependent=args.view_dep_text)
 
     # Step 2. Set up NeRF model
     model = NeRFNetwork(args).to(device)
@@ -155,6 +155,7 @@ def optimize_nerf(
             azimuth = data["azimuth"]  # [-180, 180]
             assert azimuth.shape[0] == 1, "Batch size should be 1"
             text_uncond = embeddings["uncond"]
+            text_cond = None
 
             if not args.view_dep_text:
                 text_cond = embeddings["default"]
@@ -313,10 +314,10 @@ if __name__ == "__main__":
     ### YOUR CODE HERE ###
     # You wil need to tune the following parameters to obtain good NeRF results
     ### regularizations
-    parser.add_argument('--lambda_entropy', type=float, default=0, help="loss scale for alpha entropy")
-    parser.add_argument('--lambda_orient', type=float, default=0, help="loss scale for orientation")
+    parser.add_argument('--lambda_entropy', type=float, default=5e-3, help="loss scale for alpha entropy")
+    parser.add_argument('--lambda_orient', type=float, default=5e-3, help="loss scale for orientation")
     ### shading options
-    parser.add_argument('--latent_iter_ratio', type=float, default=0, help="training iters that only use albedo shading")
+    parser.add_argument('--latent_iter_ratio', type=float, default=0.1, help="training iters that only use albedo shading")
 
 
     parser.add_argument(
@@ -324,10 +325,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--view_dep_text",
-        type=int,
-        default=0,
+        default=False,
+        action='store_true',
         help="option to use view dependent text embeddings for nerf optimization",
     )
+    parser.add_argument("--device", type=str, default="cuda")
     parser = add_config_arguments(
         parser
     )  # add additional arguments for nerf optimization, You don't need to change the setting here by default
@@ -344,7 +346,10 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
 
     # initialize SDS
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available() and "cuda" in args.device: 
+        device = torch.device(args.device)
+    else:
+        device = torch.device("cpu")
     sds = SDS(sd_version="2.1", device=device, output_dir=output_dir)
 
     # optimize a NeRF model

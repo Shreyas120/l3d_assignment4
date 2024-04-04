@@ -42,9 +42,18 @@ def optimize_an_image(
         
         ### YOUR CODE HERE ###
         if args.sds_guidance:
-            loss = 
+            loss = sds.sds_loss(
+                                    latents = latents,
+                                    text_embeddings=embeddings["default"],
+                                    text_embeddings_uncond=embeddings["uncond"],
+                                    guidance_scale = 100,
+                                    grad_scale = 1
+                                )
         else:
-            loss = 
+            loss = sds.sds_loss(
+                                    latents = latents, 
+                                    text_embeddings=embeddings["default"]
+                                ) 
 
         # Backward pass
         loss.backward()
@@ -80,6 +89,7 @@ if __name__ == "__main__":
         default="",
         help="postfix for the output directory to differentiate multiple runs",
     )
+    parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
 
     seed_everything(args.seed)
@@ -92,7 +102,10 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
 
     # initialize SDS
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available() and "cuda" in args.device: 
+        device = torch.device(args.device)
+    else:
+        device = torch.device("cpu")
     sds = SDS(sd_version="2.1", device=device, output_dir=output_dir)
 
     # optimize an image
